@@ -7,9 +7,7 @@
 
 package com.google.re2j;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 // A Machine matches an input string of Unicode characters against an
 // RE2 instance using a simple NFA.
@@ -68,12 +66,12 @@ class Machine {
     }
 
     // Frees all threads on the thread queue, returning them to the free pool.
-    void clear(List<Thread> freePool) {
+    void clear(Machine m) {
       for(int i = 0; i < size; ++i) {
         Entry entry = dense[i];
         if (entry != null && entry.thread != null) {
           // free(entry.thread)
-          freePool.add(entry.thread);
+          m.free(entry.thread);
         }
         // (don't release dense[i] to GC; recycle it.)
       }
@@ -105,7 +103,8 @@ class Machine {
 
   // pool of available threads
   // Really a stack:
-  private List<Thread> pool = new ArrayList<Thread>();
+  private Thread[] pool = new Thread[10];
+  private int poolSize = 0;
 
   // Whether a match was found.
   private boolean matched;
@@ -126,7 +125,8 @@ class Machine {
 
   // init() reinitializes an existing Machine for re-use on a new input.
   void init(int ncap) {
-    for (Thread t : pool) {
+    for (int i = 0; i < poolSize; i++) {
+      Thread t = pool[i];
       t.cap = new int[ncap];
     }
     this.matchcap = new int[ncap];
@@ -144,17 +144,23 @@ class Machine {
   // alloc() allocates a new thread with the given instruction.
   // It uses the free pool if possible.
   private Thread alloc(Inst inst) {
-    int n = pool.size();
-    Thread t = n > 0
-        ? pool.remove(n - 1)
-        : new Thread(matchcap.length);
+    Thread t;
+    if (poolSize > 0) {
+      poolSize--;
+      t = pool[poolSize];
+    } else {
+      t = new Thread(matchcap.length);
+    }
     t.inst = inst;
     return t;
   }
 
   // free() returns t to the free pool.
   private void free(Thread t) {
-    pool.add(t);
+    if (poolSize >= pool.length) {
+      pool = Arrays.copyOf(pool, pool.length * 2);
+    }
+    pool[poolSize ++] = t;
   }
 
   // match() runs the machine over the input |in| starting at |pos| with the
@@ -247,7 +253,7 @@ class Machine {
       runq = nextq;
       nextq = tmpq;
     }
-    nextq.clear(pool);
+    nextq.clear(this);
     return matched;
   }
 
@@ -271,8 +277,7 @@ class Machine {
         continue;
       }
       if (longest && matched && t.cap.length > 0 && matchcap[0] < t.cap[0]) {
-        // free(t)
-        pool.add(t);
+        free(t);
         continue;
       }
       Inst i = t.inst;
@@ -293,8 +298,7 @@ class Machine {
             for (int k = j + 1; k < runq.size; ++k) {
               Queue.Entry d = runq.dense[k];
               if (d.thread != null) {
-                // free(d.thread)
-                pool.add(d.thread);
+                free(d.thread);
               }
             }
             runq.size = 0;
@@ -325,8 +329,7 @@ class Machine {
         t = add(nextq, i.out, nextPos, t.cap, nextCond, t);
       }
       if (t != null) {
-        // free(t)
-        pool.add(t);
+        free(t);
       }
     }
     runq.size = 0;
