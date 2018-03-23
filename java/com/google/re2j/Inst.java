@@ -24,6 +24,7 @@ class Inst {
   public static final int RUNE1 = 9;
   public static final int RUNE_ANY = 10;
   public static final int RUNE_ANY_NOT_NL = 11;
+  public static final int RUNE1_FOLD = 12;
 
   int op;
   int out;  // all but MATCH, FAIL
@@ -32,12 +33,17 @@ class Inst {
                 // otherwise a list of [lo,hi] pairs.  hi is *inclusive*.
                 // REVIEWERS: why not half-open intervals?
 
+  int f0;
+  int f1;
+  int f2;
+  int f3;
+  
   Inst(int op) {
     this.op = op;
   }
   
   boolean isRune() {
-    return op >= RUNE && op <= RUNE_ANY_NOT_NL;
+    return op >= RUNE && op <= RUNE1_FOLD;
   }
 
 
@@ -46,21 +52,12 @@ class Inst {
   boolean matchRune(int r) {
     // Special case: single-rune slice is from literal string, not char
     // class.
-    if (runes.length == 1) {
-      int r0 = runes[0];
-      if (r == r0) {
-        return true;
-      }
-      if ((arg & RE2.FOLD_CASE) != 0) {
-        for (int r1 = Unicode.simpleFold(r0);
-             r1 != r0;
-             r1 = Unicode.simpleFold(r1)) {
-          if (r == r1) {
-            return true;
-          }
-        }
-      }
-      return false;
+    if (op ==RUNE1) {
+      return f0 == r;
+    }
+    
+    if (op == RUNE1_FOLD) {
+      return f0 == r || f1 == r || f2 == r || f3 == r;
     }
 
     // Peek at the first few pairs.
@@ -108,6 +105,7 @@ class Inst {
       case NOP:
         return "nop -> " + out;
       case RUNE:
+      case RUNE1_FOLD:
         if (runes == null) {
           return "rune <null>";  // can't happen
         }

@@ -171,6 +171,24 @@ class Compiler {
         runes.length == 2 &&
         runes[0] == runes[1]) {
       i.op = Inst.RUNE1;
+      i.f0 = runes[0];
+    } else if (runes.length == 1 && (flags & RE2.FOLD_CASE) != 0) {
+      i.op = Inst.RUNE1_FOLD;
+      i.f0 = runes[0];
+      i.f1 = runes[0];
+      i.f2 = runes[0];
+      i.f3 = runes[0];
+      
+      int[] fold = Unicode.fold(i.f0);
+      if (fold.length > 0){
+        i.f1 = fold[0];
+        if (fold.length > 1) {
+          i.f2 = fold[1];
+          if (fold.length > 2) {
+            i.f3 = fold[2];
+          }
+        }
+      }
     } else if (runes.length == 2 &&
                runes[0] == 0 &&
                runes[1] == Unicode.MAX_RUNE) {

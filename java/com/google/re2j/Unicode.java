@@ -7,6 +7,8 @@
 
 package com.google.re2j;
 
+import java.util.Arrays;
+
 /**
  * Utilities for dealing with Unicode better than Java does.
  *
@@ -227,6 +229,18 @@ class Unicode {
     return toUpper(r);
   }
 
+
+  public static int[] fold(int r0) {
+    int[] folds = new int[3];
+    int foldsSize = 0;
+    int r1 = r0;
+    while((r1 = simpleFold(r1)) != r0) {
+      folds[foldsSize] = r1;
+      foldsSize++;
+    }
+    return Arrays.copyOf(folds, foldsSize);
+  }
+  
   private Unicode() {}  // uninstantiable
 
 }

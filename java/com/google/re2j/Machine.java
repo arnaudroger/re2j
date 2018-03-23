@@ -307,6 +307,7 @@ class Machine {
           break;
 
         case Inst.RUNE:
+        case Inst.RUNE1_FOLD:
           add = i.matchRune(c);
           break;
 
@@ -385,6 +386,7 @@ class Machine {
 
       case Inst.MATCH:
       case Inst.RUNE:
+      case Inst.RUNE1_FOLD:
       case Inst.RUNE1:
       case Inst.RUNE_ANY:
       case Inst.RUNE_ANY_NOT_NL:
