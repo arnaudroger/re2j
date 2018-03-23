@@ -229,7 +229,7 @@ class Machine {
         if (matchcap.length > 0) {
           matchcap[0] = pos;
         }
-        add(runq, prog.start, pos, matchcap, flag, null);
+        add(runq, prog.startInst, pos, matchcap, flag, null);
       }
       flag = Utils.emptyOpContext(rune, rune1);
       step(runq, nextq, pos, pos + width, rune, flag, anchor, pos == in.endPos());
@@ -327,7 +327,7 @@ class Machine {
           throw new IllegalStateException("bad inst");
       }
       if (add) {
-        t = add(nextq, i.out, nextPos, t.cap, nextCond, t);
+        t = add(nextq, i.outInst, nextPos, t.cap, nextCond, t);
       }
       if (t != null) {
         free(t);
@@ -341,15 +341,11 @@ class Machine {
   // from |pc| by following empty-width conditions satisfied by |cond|.  |pos|
   // gives the current position in the input.  |cond| is a bitmask of EMPTY_*
   // flags.
-  private Thread add(Queue q, int pc, int pos, int[] cap, int cond, Thread t) {
-    if (pc == 0) {
+  private Thread add(Queue q, Inst inst, int pos, int[] cap, int cond, Thread t) {
+    if (q.contains(inst.pc)) {
       return t;
     }
-    if (q.contains(pc)) {
-      return t;
-    }
-    Queue.Entry d = q.add(pc);
-    Inst inst = prog.getInst(pc);
+    Queue.Entry d = q.add(inst.pc);
     switch (inst.op) {
       default:
         throw new IllegalStateException("unhandled");
@@ -359,28 +355,28 @@ class Machine {
 
       case Inst.ALT:
       case Inst.ALT_MATCH:
-        t = add(q, inst.out, pos, cap, cond, t);
-        t = add(q, inst.arg, pos, cap, cond, t);
+        t = add(q, inst.outInst, pos, cap, cond, t);
+        t = add(q, inst.argInst, pos, cap, cond, t);
         break;
 
       case Inst.EMPTY_WIDTH:
         if ((inst.arg & ~cond) == 0) {
-          t = add(q, inst.out, pos, cap, cond, t);
+          t = add(q, inst.outInst, pos, cap, cond, t);
         }
         break;
 
       case Inst.NOP:
-        t = add(q, inst.out, pos, cap, cond, t);
+        t = add(q, inst.outInst, pos, cap, cond, t);
         break;
 
       case Inst.CAPTURE:
         if (inst.arg < cap.length) {
           int opos = cap[inst.arg];
           cap[inst.arg] = pos;
-          add(q, inst.out, pos, cap, cond, null);
+          add(q, inst.outInst, pos, cap, cond, null);
           cap[inst.arg] = opos;
         } else {
-          t = add(q, inst.out, pos, cap, cond, t);
+          t = add(q, inst.outInst, pos, cap, cond, t);
         }
         break;
 

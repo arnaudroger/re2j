@@ -19,7 +19,8 @@ class Prog {
   
   int start; // index of start instruction
   int numCap = 2; // number of CAPTURE insts in re
-                  // 2 => implicit ( and ) for whole match $0
+  Inst startInst;
+    // 2 => implicit ( and ) for whole match $0
 
   // Constructs an empty program.
   Prog() {}
@@ -176,5 +177,19 @@ class Prog {
           append(inst[pc]).append('\n');
     }
     return out.toString();
+  }
+
+  public void linkInst() {
+
+
+    for(int i = 0; i < instSize; i++) {
+      Inst ii = inst[i];
+      if (Inst.isAltOp(ii.op)) {
+        ii.argInst = inst[ii.arg];
+      } 
+      ii.outInst = inst[ii.out];
+      ii.pc = i;
+    }
+    startInst = inst[start];
   }
 }

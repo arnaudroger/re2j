@@ -48,6 +48,7 @@ class Compiler {
     Frag f = c.compile(re);
     c.prog.patch(f.out, c.newInst(Inst.MATCH).i);
     c.prog.start = f.i;
+    c.prog.linkInst();
     return c.prog;
   }
 

@@ -38,6 +38,10 @@ class Inst {
   int f2;
   int f3;
   
+  Inst outInst;
+  Inst argInst;
+  int pc;
+
   Inst(int op) {
     this.op = op;
   }
@@ -133,4 +137,7 @@ class Inst {
     return out.toString();
   }
 
+  public static boolean isAltOp(int op) {
+    return op == ALT || op == ALT_MATCH;
+  }
 }
