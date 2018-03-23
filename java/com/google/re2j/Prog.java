@@ -36,7 +36,7 @@ class Prog {
 
   // Adds a new instruction to this program, with operator |op| and |pc| equal
   // to |numInst()|.
-  void addInst(Inst.Op op) {
+  void addInst(int op) {
     inst.add(new Inst(op));
   }
 
@@ -44,7 +44,7 @@ class Prog {
   // resulting instruction.
   Inst skipNop(int pc) {
     Inst i = inst.get(pc);
-    while (i.op == Inst.Op.NOP || i.op == Inst.Op.CAPTURE) {
+    while (i.op == Inst.NOP || i.op == Inst.CAPTURE) {
       i = inst.get(pc);
       pc = i.out;
     }
@@ -58,18 +58,18 @@ class Prog {
     Inst i = skipNop(start);
 
     // Avoid allocation of buffer if prefix is empty.
-    if (i.op() != Inst.Op.RUNE || i.runes.length != 1) {
-      return i.op == Inst.Op.MATCH;  // (append "" to prefix)
+    if (i.op() != Inst.RUNE || i.runes.length != 1) {
+      return i.op == Inst.MATCH;  // (append "" to prefix)
     }
 
     // Have prefix; gather characters.
-    while (i.op() == Inst.Op.RUNE &&
+    while (i.op() == Inst.RUNE &&
            i.runes.length == 1 &&
            (i.arg & RE2.FOLD_CASE) == 0) {
       prefix.appendCodePoint(i.runes[0]);  // an int, not a byte.
       i = skipNop(i.out);
     }
-    return i.op == Inst.Op.MATCH;
+    return i.op == Inst.MATCH;
   }
 
   // startCond() returns the leading empty-width conditions that must be true
@@ -81,13 +81,13 @@ class Prog {
     for (;;) {
       Inst i = inst.get(pc);
       switch (i.op) {
-        case EMPTY_WIDTH:
+        case Inst.EMPTY_WIDTH:
           flag |= i.arg;
           break;
-        case FAIL:
+        case Inst.FAIL:
           return -1;
-        case CAPTURE:
-        case NOP:
+        case Inst.CAPTURE:
+        case Inst.NOP:
           break;  // skip
         default:
           break loop;

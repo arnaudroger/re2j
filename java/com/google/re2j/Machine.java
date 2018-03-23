@@ -278,7 +278,7 @@ class Machine {
       Inst i = t.inst;
       boolean add = false;
       switch (i.op) {
-        case MATCH:
+        case Inst.MATCH:
           if (anchor == RE2.ANCHOR_BOTH && !atEnd) {
             // Don't match if we anchor at both start and end and those
             // expectations aren't met.
@@ -302,19 +302,19 @@ class Machine {
           matched = true;
           break;
 
-        case RUNE:
+        case Inst.RUNE:
           add = i.matchRune(c);
           break;
 
-        case RUNE1:
+        case Inst.RUNE1:
           add = c == i.runes[0];
           break;
 
-        case RUNE_ANY:
+        case Inst.RUNE_ANY:
           add = true;
           break;
 
-        case RUNE_ANY_NOT_NL:
+        case Inst.RUNE_ANY_NOT_NL:
           add = c != '\n';
           break;
 
@@ -350,26 +350,26 @@ class Machine {
       default:
         throw new IllegalStateException("unhandled");
 
-      case FAIL:
+      case Inst.FAIL:
         break;  // nothing
 
-      case ALT:
-      case ALT_MATCH:
+      case Inst.ALT:
+      case Inst.ALT_MATCH:
         t = add(q, inst.out, pos, cap, cond, t);
         t = add(q, inst.arg, pos, cap, cond, t);
         break;
 
-      case EMPTY_WIDTH:
+      case Inst.EMPTY_WIDTH:
         if ((inst.arg & ~cond) == 0) {
           t = add(q, inst.out, pos, cap, cond, t);
         }
         break;
 
-      case NOP:
+      case Inst.NOP:
         t = add(q, inst.out, pos, cap, cond, t);
         break;
 
-      case CAPTURE:
+      case Inst.CAPTURE:
         if (inst.arg < cap.length) {
           int opos = cap[inst.arg];
           cap[inst.arg] = pos;
@@ -380,11 +380,11 @@ class Machine {
         }
         break;
 
-      case MATCH:
-      case RUNE:
-      case RUNE1:
-      case RUNE_ANY:
-      case RUNE_ANY_NOT_NL:
+      case Inst.MATCH:
+      case Inst.RUNE:
+      case Inst.RUNE1:
+      case Inst.RUNE_ANY:
+      case Inst.RUNE_ANY_NOT_NL:
         if (t == null) {
           t = alloc(inst);
         } else {
