@@ -7,15 +7,16 @@
 
 package com.google.re2j;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 
 /**
  * A Prog is a compiled regular expression program.
  */
 class Prog {
 
-  private final List<Inst> inst = new ArrayList<Inst>();
+  Inst[] inst = new Inst[10];
+  int instSize = 0;
+  
   int start; // index of start instruction
   int numCap = 2; // number of CAPTURE insts in re
                   // 2 => implicit ( and ) for whole match $0
@@ -26,26 +27,29 @@ class Prog {
   // Returns the instruction at the specified pc.
   // Precondition: pc > 0 && pc < numInst().
   Inst getInst(int pc) {
-    return inst.get(pc);
+    return inst[pc];
   }
 
   // Returns the number of instructions in this program.
   int numInst() {
-    return inst.size();
+    return instSize;
   }
 
   // Adds a new instruction to this program, with operator |op| and |pc| equal
   // to |numInst()|.
   void addInst(int op) {
-    inst.add(new Inst(op));
+    if (instSize >= inst.length) {
+      inst = Arrays.copyOf(inst, inst.length * 2);
+    }
+    inst[instSize++] = new Inst(op);
   }
 
   // skipNop() follows any no-op or capturing instructions and returns the
   // resulting instruction.
   Inst skipNop(int pc) {
-    Inst i = inst.get(pc);
+    Inst i = inst[pc];
     while (i.op == Inst.NOP || i.op == Inst.CAPTURE) {
-      i = inst.get(pc);
+      i = inst[pc];
       pc = i.out;
     }
     return i;
@@ -79,7 +83,7 @@ class Prog {
     int pc = start;
  loop:
     for (;;) {
-      Inst i = inst.get(pc);
+      Inst i = inst[pc];
       switch (i.op) {
         case Inst.EMPTY_WIDTH:
           flag |= i.arg;
@@ -111,7 +115,7 @@ class Prog {
   // at its output link.
 
   int next(int l) {
-    Inst i = inst.get(l >> 1);
+    Inst i = inst[l >> 1];
     if ((l & 1) == 0) {
       return i.out;
     }
@@ -120,7 +124,7 @@ class Prog {
 
   void patch(int l, int val) {
     while (l != 0) {
-      Inst i = inst.get(l >> 1);
+      Inst i = inst[l >> 1];
       if ((l & 1) == 0) {
         l = i.out;
         i.out = val;
@@ -146,7 +150,7 @@ class Prog {
       }
       last = next;
     }
-    Inst i = inst.get(last>>1);
+    Inst i = inst[last>>1];
     if ((last & 1) == 0) {
       i.out = l2;
     } else {
@@ -160,7 +164,7 @@ class Prog {
   @Override
   public String toString() {
     StringBuilder out = new StringBuilder();
-    for (int pc = 0; pc < inst.size(); ++pc) {
+    for (int pc = 0; pc < instSize; ++pc) {
       int len = out.length();
       out.append(pc);
       if (pc == start) {
@@ -169,7 +173,7 @@ class Prog {
       // Use spaces not tabs since they're not always preserved in
       // Google Java source, such as our tests.
       out.append("        ".substring(out.length() - len)).
-          append(inst.get(pc)).append('\n');
+          append(inst[pc]).append('\n');
     }
     return out.toString();
   }
