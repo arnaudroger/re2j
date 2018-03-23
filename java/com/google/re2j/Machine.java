@@ -346,7 +346,7 @@ class Machine {
     }
     Queue.Entry d = q.add(pc);
     Inst inst = prog.getInst(pc);
-    switch (inst.op()) {
+    switch (inst.op) {
       default:
         throw new IllegalStateException("unhandled");
 

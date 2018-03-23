@@ -58,12 +58,12 @@ class Prog {
     Inst i = skipNop(start);
 
     // Avoid allocation of buffer if prefix is empty.
-    if (i.op() != Inst.RUNE || i.runes.length != 1) {
+    if (!i.isRune() || i.runes.length != 1) {
       return i.op == Inst.MATCH;  // (append "" to prefix)
     }
 
     // Have prefix; gather characters.
-    while (i.op() == Inst.RUNE &&
+    while (i.isRune() &&
            i.runes.length == 1 &&
            (i.arg & RE2.FOLD_CASE) == 0) {
       prefix.appendCodePoint(i.runes[0]);  // an int, not a byte.

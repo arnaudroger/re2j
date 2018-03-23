@@ -35,19 +35,11 @@ class Inst {
   Inst(int op) {
     this.op = op;
   }
-
-  // op() returns i.Op but merges all the rune special cases into RUNE
-  // Beware "op" is a public field.
-  int op() {
-    switch (op) {
-      case RUNE1:
-      case RUNE_ANY:
-      case RUNE_ANY_NOT_NL:
-        return RUNE;
-      default:
-        return op;
-    }
+  
+  boolean isRune() {
+    return op >= RUNE && op <= RUNE_ANY_NOT_NL;
   }
+
 
   // MatchRune returns true if the instruction matches (and consumes) r.
   // It should only be called when op == InstRune.
