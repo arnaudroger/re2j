@@ -24,71 +24,55 @@ class Machine {
     Inst inst;
   }
 
-  // A queue is a 'sparse array' holding pending threads of execution.  See:
-  // research.swtch.com/2008/03/using-uninitialized-memory-for-fun-and.html
-  private static class Queue {
+  static class Queue {
 
-    static class Entry {
-      int pc;
-      Thread thread;
-    }
-
-    final Entry[] dense; // may contain stale Entries in slots >= size
-    final int[] sparse;  // may contain stale but in-bounds values.
+    final boolean[] pcs;
+    long pcsl;
+    boolean empty;
+    final Thread[] denseThreads; // may contain stale Thread in slots >= size
     int size;  // of prefix of |dense| that is logically populated
 
     Queue(int n) {
-      this.sparse = new int[n];
-      this.dense = new Entry[n];
+      this.denseThreads = new Thread[n];
+      if (n < 64) {
+        this.pcs = null;
+      } else {
+        this.pcs = new boolean[n - 64];
+      }
+      clear();
     }
 
     boolean contains(int pc) {
-      int j = sparse[pc];  // (non-negative)
-      if (j >= size) {
-        return false;
+      if (pc < 64) {
+        return (pcsl & 1L << pc) != 0;
+      } else {
+        return pcs[pc - 64];
       }
-      Entry d = dense[j];
-      return d != null && d.pc == pc;
     }
 
-    boolean isEmpty() { return size == 0; }
+    boolean isEmpty() { return empty; }
 
-    Entry add(int pc) {
-      int j = size++;
-      sparse[pc] = j;
-      Entry e = dense[j];
-      if (e == null) {  // recycle previous Entry if any
-        e = dense[j] = new Entry();
+    void add(int pc) {
+      if (pc < 64) {
+        pcsl |= 1L << pc;
+      } else {
+        pcs[pc - 64] = true;
       }
-      e.thread = null;
-      e.pc = pc;
-      return e;
+      empty = false;
     }
 
-    // Frees all threads on the thread queue, returning them to the free pool.
-    void clear(Machine m) {
-      for(int i = 0; i < size; ++i) {
-        Entry entry = dense[i];
-        if (entry != null && entry.thread != null) {
-          // free(entry.thread)
-          m.free(entry.thread);
-        }
-        // (don't release dense[i] to GC; recycle it.)
-      }
+    void addThread(Thread t) {
+      denseThreads[size++] = t;
+    }
+
+    void clear() {
+      if (empty) return;
       size = 0;
-    }
-
-    @Override public String toString() {
-      StringBuilder out = new StringBuilder();
-      out.append('{');
-      for (int i = 0; i < size; ++i) {
-        if (i != 0) {
-          out.append(", ");
-        }
-        out.append(dense[i].pc);
+      empty = true;
+      pcsl &= 0L;
+      if (pcs != null) {
+        Arrays.fill(pcs, false);
       }
-      out.append('}');
-      return out.toString();
     }
   }
 
@@ -155,6 +139,29 @@ class Machine {
     return t;
   }
 
+  // Frees all threads on the thread queue, returning them to the free pool.
+  private void freeQueue(Queue queue) {
+    freeQueue(queue, 0);
+  }
+
+  private void freeQueue(Queue queue, int from) {
+    int numberOfThread = queue.size - from;
+    if (numberOfThread > 0) {
+      freeQueue(queue, from, numberOfThread);
+    }
+    queue.clear();
+  }
+
+  private void freeQueue(Queue queue, int from, int numberOfThread) {
+    int poolLength = pool.length;
+    if (poolSize + numberOfThread > poolLength) {
+      pool = Arrays.copyOf(pool, poolLength + Math.max(poolLength, numberOfThread));
+    }
+    System.arraycopy(queue.denseThreads, from, pool, poolSize, numberOfThread);
+    poolSize += numberOfThread;
+  }
+  
+  
   // free() returns t to the free pool.
   private void free(Thread t) {
     if (poolSize >= pool.length) {
@@ -253,7 +260,7 @@ class Machine {
       runq = nextq;
       nextq = tmpq;
     }
-    nextq.clear(this);
+    freeQueue(nextq);
     return matched;
   }
 
@@ -268,14 +275,7 @@ class Machine {
             int nextCond, int anchor, boolean atEnd) {
     boolean longest = re2.longest;
     for (int j = 0; j < runq.size; ++j) {
-      Queue.Entry entry = runq.dense[j];
-      if (entry == null) {
-        continue;
-      }
-      Thread t = entry.thread;
-      if (t == null) {
-        continue;
-      }
+      Thread t = runq.denseThreads[j];
       if (longest && matched && t.cap.length > 0 && matchcap[0] < t.cap[0]) {
         free(t);
         continue;
@@ -295,13 +295,7 @@ class Machine {
           }
           if (!longest) {
             // First-match mode: cut off all lower-priority threads.
-            for (int k = j + 1; k < runq.size; ++k) {
-              Queue.Entry d = runq.dense[k];
-              if (d.thread != null) {
-                free(d.thread);
-              }
-            }
-            runq.size = 0;
+            freeQueue(runq, j + 1);
           }
           matched = true;
           break;
@@ -333,7 +327,7 @@ class Machine {
         free(t);
       }
     }
-    runq.size = 0;
+    runq.clear();
   }
 
   // add() adds an entry to |q| for |pc|, unless the |q| already has such an
@@ -345,7 +339,7 @@ class Machine {
     if (q.contains(inst.pc)) {
       return t;
     }
-    Queue.Entry d = q.add(inst.pc);
+    q.add(inst.pc);
     switch (inst.op) {
       default:
         throw new IllegalStateException("unhandled");
@@ -394,7 +388,7 @@ class Machine {
         if (cap.length > 0 && t.cap != cap) {
           System.arraycopy(cap, 0, t.cap, 0, cap.length);
         }
-        d.thread = t;
+        q.addThread(t);
         t = null;
         break;
     }
