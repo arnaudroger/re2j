@@ -16,7 +16,7 @@ import java.util.Arrays;
 class Machine {
 
   // A logical thread in the NFA.
-  private static class Thread {
+  public static class Thread {
     Thread(int n) {
       this.cap = new int[n];
     }
@@ -127,7 +127,7 @@ class Machine {
 
   // alloc() allocates a new thread with the given instruction.
   // It uses the free pool if possible.
-  private Thread alloc(Inst inst) {
+  Thread alloc(Inst inst) {
     Thread t;
     if (poolSize > 0) {
       poolSize--;
@@ -236,7 +236,7 @@ class Machine {
         if (matchcap.length > 0) {
           matchcap[0] = pos;
         }
-        add(runq, prog.startInst, pos, matchcap, flag, null);
+        prog.startInst.add(runq,  pos, matchcap, flag, null, this);
       }
       flag = Utils.emptyOpContext(rune, rune1);
       step(runq, nextq, pos, pos + width, rune, flag, anchor, pos == in.endPos());
@@ -281,14 +281,11 @@ class Machine {
         continue;
       }
       Inst i = t.inst;
-      boolean add = false;
-      switch (i.op) {
-        case Inst.MATCH:
-          if (anchor == RE2.ANCHOR_BOTH && !atEnd) {
-            // Don't match if we anchor at both start and end and those
-            // expectations aren't met.
-            break;
-          }
+      
+      if (i.isMatch()) {
+        // Don't match if we anchor at both start and end and those
+        // expectations aren't met.
+        if (anchor != RE2.ANCHOR_BOTH || atEnd) {
           if (t.cap.length > 0 && (!longest || !matched || matchcap[1] < pos)) {
             t.cap[1] = pos;
             System.arraycopy(t.cap, 0, matchcap, 0, t.cap.length);
@@ -298,30 +295,9 @@ class Machine {
             freeQueue(runq, j + 1);
           }
           matched = true;
-          break;
-
-        case Inst.RUNE:
-        case Inst.RUNE1_FOLD:
-          add = i.matchRune(c);
-          break;
-
-        case Inst.RUNE1:
-          add = c == i.runes[0];
-          break;
-
-        case Inst.RUNE_ANY:
-          add = true;
-          break;
-
-        case Inst.RUNE_ANY_NOT_NL:
-          add = c != '\n';
-          break;
-
-        default:
-          throw new IllegalStateException("bad inst");
-      }
-      if (add) {
-        t = add(nextq, i.outInst, nextPos, t.cap, nextCond, t);
+        }
+      } else if (i.matchRune(c)){
+        t = i.outInst.add(nextq, nextPos, t.cap, nextCond, t, this);
       }
       if (t != null) {
         free(t);
@@ -330,69 +306,6 @@ class Machine {
     runq.clear();
   }
 
-  // add() adds an entry to |q| for |pc|, unless the |q| already has such an
-  // entry.  It also recursively adds an entry for all instructions reachable
-  // from |pc| by following empty-width conditions satisfied by |cond|.  |pos|
-  // gives the current position in the input.  |cond| is a bitmask of EMPTY_*
-  // flags.
-  private Thread add(Queue q, Inst inst, int pos, int[] cap, int cond, Thread t) {
-    if (q.contains(inst.pc)) {
-      return t;
-    }
-    q.add(inst.pc);
-    switch (inst.op) {
-      default:
-        throw new IllegalStateException("unhandled");
 
-      case Inst.FAIL:
-        break;  // nothing
-
-      case Inst.ALT:
-      case Inst.ALT_MATCH:
-        t = add(q, inst.outInst, pos, cap, cond, t);
-        t = add(q, inst.argInst, pos, cap, cond, t);
-        break;
-
-      case Inst.EMPTY_WIDTH:
-        if ((inst.arg & ~cond) == 0) {
-          t = add(q, inst.outInst, pos, cap, cond, t);
-        }
-        break;
-
-      case Inst.NOP:
-        t = add(q, inst.outInst, pos, cap, cond, t);
-        break;
-
-      case Inst.CAPTURE:
-        if (inst.arg < cap.length) {
-          int opos = cap[inst.arg];
-          cap[inst.arg] = pos;
-          add(q, inst.outInst, pos, cap, cond, null);
-          cap[inst.arg] = opos;
-        } else {
-          t = add(q, inst.outInst, pos, cap, cond, t);
-        }
-        break;
-
-      case Inst.MATCH:
-      case Inst.RUNE:
-      case Inst.RUNE1_FOLD:
-      case Inst.RUNE1:
-      case Inst.RUNE_ANY:
-      case Inst.RUNE_ANY_NOT_NL:
-        if (t == null) {
-          t = alloc(inst);
-        } else {
-          t.inst = inst;
-        }
-        if (cap.length > 0 && t.cap != cap) {
-          System.arraycopy(cap, 0, t.cap, 0, cap.length);
-        }
-        q.addThread(t);
-        t = null;
-        break;
-    }
-    return t;
-  }
 
 }

@@ -42,7 +42,7 @@ class Prog {
     if (instSize >= inst.length) {
       inst = Arrays.copyOf(inst, inst.length * 2);
     }
-    inst[instSize++] = new Inst(op);
+    inst[instSize++] = Inst.of(op);
   }
 
   // skipNop() follows any no-op or capturing instructions and returns the
@@ -63,15 +63,15 @@ class Prog {
     Inst i = skipNop(start);
 
     // Avoid allocation of buffer if prefix is empty.
-    if (!i.isRune() || i.runes.length != 1) {
+    if (!i.isRune() || ((Inst.RuneInst)i).runes.length != 1) {
       return i.op == Inst.MATCH;  // (append "" to prefix)
     }
 
     // Have prefix; gather characters.
     while (i.isRune() &&
-           i.runes.length == 1 &&
+            ((Inst.RuneInst)i).runes.length == 1 &&
            (i.arg & RE2.FOLD_CASE) == 0) {
-      prefix.appendCodePoint(i.runes[0]);  // an int, not a byte.
+      prefix.appendCodePoint(((Inst.RuneInst)i).runes[0]);  // an int, not a byte.
       i = skipNop(i.out);
     }
     return i.op == Inst.MATCH;
@@ -185,7 +185,7 @@ class Prog {
     for(int i = 0; i < instSize; i++) {
       Inst ii = inst[i];
       if (Inst.isAltOp(ii.op)) {
-        ii.argInst = inst[ii.arg];
+        ((Inst.AltInst)ii).argInst = inst[ii.arg];
       } 
       ii.outInst = inst[ii.out];
       ii.pc = i;
