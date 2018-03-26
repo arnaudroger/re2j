@@ -150,6 +150,10 @@ public final class Pattern implements Serializable {
   public boolean matches(String input) {
     return this.matcher(input).matches();
   }
+  
+  public boolean find(CharSequence input) {
+    return re2.match(input, 0, input.length(), RE2.UNANCHORED, Utils.EMPTY_INTS, 0);
+  }
 
   /**
    * Creates a new {@code Matcher} matching the pattern against the input.
