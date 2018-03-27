@@ -15,25 +15,20 @@ import java.util.Arrays;
 // Called by RE2.doExecute.
 class Machine {
 
-  // A logical thread in the NFA.
-  public static class Thread {
-    Thread(int n) {
-      this.cap = new int[n];
-    }
-    int[] cap;
-    Inst inst;
-  }
+
 
   static class Queue {
 
     final boolean[] pcs;
     long pcsl;
     boolean empty;
-    final Thread[] denseThreads; // may contain stale Thread in slots >= size
+    final Inst[] denseThreadsInstructions; // may contain stale Thread in slots >= size
+    final int[][] denseThreadsCapture; // may contain stale Thread in slots >= size
     int size;  // of prefix of |dense| that is logically populated
 
     Queue(int n) {
-      this.denseThreads = new Thread[n];
+      this.denseThreadsInstructions = new Inst[n];
+      this.denseThreadsCapture = new int[n][];
       if (n < 64) {
         this.pcs = null;
       } else {
@@ -61,10 +56,15 @@ class Machine {
       empty = false;
     }
 
-    void addThread(Thread t) {
-      denseThreads[size++] = t;
+    final void addThread(Inst inst, int[] capture) {
+      denseThreadsInstructions[size] = inst;
+      denseThreadsCapture[size] = capture;
+      size++;
     }
 
+    final void addThread(Inst inst) {
+      denseThreadsInstructions[size++] = inst;
+    }
     void clear() {
       if (empty) return;
       size = 0;
@@ -87,7 +87,7 @@ class Machine {
 
   // pool of available threads
   // Really a stack:
-  private Thread[] pool = new Thread[10];
+  private  int[][]  pool = new int[10][];
   private int poolSize = 0;
 
   // Whether a match was found.
@@ -96,6 +96,10 @@ class Machine {
   // Capture information for the match.
   private int[] matchcap;
 
+
+
+  boolean captures;
+  
   /**
    * Constructs a matching Machine for the specified {@code RE2}.
    */
@@ -105,19 +109,20 @@ class Machine {
     this.q0 = new Queue(prog.numInst());
     this.q1 = new Queue(prog.numInst());
     this.matchcap = new int[prog.numCap < 2 ? 2 : prog.numCap];
+    this.captures = matchcap.length > 0;
   }
 
   // init() reinitializes an existing Machine for re-use on a new input.
   void init(int ncap) {
     for (int i = 0; i < poolSize; i++) {
-      Thread t = pool[i];
-      t.cap = new int[ncap];
+      pool[i] = new int[ncap];
     }
     this.matchcap = new int[ncap];
+    this.captures = ncap > 0;
   }
 
   int[] submatches() {
-    if (matchcap.length == 0) {
+    if (!captures) {
       return Utils.EMPTY_INTS;
     }
     int[] cap = new int[matchcap.length];
@@ -127,16 +132,13 @@ class Machine {
 
   // alloc() allocates a new thread with the given instruction.
   // It uses the free pool if possible.
-  Thread alloc(Inst inst) {
-    Thread t;
+  int[] alloc() {
     if (poolSize > 0) {
       poolSize--;
-      t = pool[poolSize];
+      return pool[poolSize];
     } else {
-      t = new Thread(matchcap.length);
+      return new int[matchcap.length];
     }
-    t.inst = inst;
-    return t;
   }
 
   // Frees all threads on the thread queue, returning them to the free pool.
@@ -145,9 +147,11 @@ class Machine {
   }
 
   private void freeQueue(Queue queue, int from) {
-    int numberOfThread = queue.size - from;
-    if (numberOfThread > 0) {
-      freeQueue(queue, from, numberOfThread);
+    if (captures) {
+      int numberOfThread = queue.size - from;
+      if (numberOfThread > 0) {
+        freeQueue(queue, from, numberOfThread);
+      }
     }
     queue.clear();
   }
@@ -157,17 +161,17 @@ class Machine {
     if (poolSize + numberOfThread > poolLength) {
       pool = Arrays.copyOf(pool, poolLength + Math.max(poolLength, numberOfThread));
     }
-    System.arraycopy(queue.denseThreads, from, pool, poolSize, numberOfThread);
+    System.arraycopy(queue.denseThreadsCapture, from, pool, poolSize, numberOfThread);
     poolSize += numberOfThread;
   }
   
   
   // free() returns t to the free pool.
-  private void free(Thread t) {
+  private void free(int[] capture) {
     if (poolSize >= pool.length) {
       pool = Arrays.copyOf(pool, pool.length * 2);
     }
-    pool[poolSize ++] = t;
+    pool[poolSize ++] = capture;
   }
 
   // match() runs the machine over the input |in| starting at |pos| with the
@@ -233,7 +237,7 @@ class Machine {
       if (!matched && (pos == 0 || anchor == RE2.UNANCHORED)) {
         // If we are anchoring at begin then only add threads that begin
         // at |pos| = 0.
-        if (matchcap.length > 0) {
+        if (captures) {
           matchcap[0] = pos;
         }
         prog.startInst.add(runq,  pos, matchcap, flag, null, this);
@@ -243,7 +247,7 @@ class Machine {
       if (width == 0) {  // EOF
         break;
       }
-      if (matchcap.length == 0 && matched) {
+      if (!captures && matched) {
         // Found a match and not paying attention
         // to where it is, so any match will do.
         break;
@@ -275,20 +279,27 @@ class Machine {
             int nextCond, int anchor, boolean atEnd) {
     boolean longest = re2.longest;
     for (int j = 0; j < runq.size; ++j) {
-      Thread t = runq.denseThreads[j];
-      if (longest && matched && t.cap.length > 0 && matchcap[0] < t.cap[0]) {
-        free(t);
-        continue;
+      int[] tcap;
+      
+      if (!captures) {
+        tcap = null;
+      } else {
+        tcap = runq.denseThreadsCapture[j];
+        if (longest && matched && matchcap[0] < tcap[0]) {
+          free(tcap);
+          continue;
+        }
       }
-      Inst i = t.inst;
+
+      Inst i = runq.denseThreadsInstructions[j];
       
       if (i.op == Inst.MATCH) {
         // Don't match if we anchor at both start and end and those
         // expectations aren't met.
         if (anchor != RE2.ANCHOR_BOTH || atEnd) {
-          if (t.cap.length > 0 && (!longest || !matched || matchcap[1] < pos)) {
-            t.cap[1] = pos;
-            System.arraycopy(t.cap, 0, matchcap, 0, t.cap.length);
+          if (captures && (!longest || !matched || matchcap[1] < pos)) {
+            tcap[1] = pos;
+            System.arraycopy(tcap, 0, matchcap, 0, tcap.length);
           }
           if (!longest) {
             // First-match mode: cut off all lower-priority threads.
@@ -297,10 +308,10 @@ class Machine {
           matched = true;
         }
       } else if (i.matchRune(c)){
-        t = i.outInst.add(nextq, nextPos, t.cap, nextCond, t, this);
+        tcap = i.outInst.add(nextq, nextPos, tcap, nextCond, tcap, this);
       }
-      if (t != null) {
-        free(t);
+      if (tcap != null) {
+        free(tcap);
       }
     }
     runq.clear();
