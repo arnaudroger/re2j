@@ -180,16 +180,107 @@ class Prog {
   }
 
   public void linkInst() {
+    // enlarge alt to Alt Many
+    for(int i = 0; i < instSize; i++) {
+      Inst ii = inst[i];
+      if (Inst.isAltOp(ii.op)) {
+        Inst.Alt2Inst altInst = (Inst.Alt2Inst) ii;
+        if (altInst.ops != null) {
 
+          int altSize = altInst.ops.length;
+
+          if (altSize > 2) {
+            if (altSize == 3) {
+              this.inst[i] = new Inst.Alt3Inst(altInst);
+            } else if (altSize == 4) {
+              this.inst[i] = new Inst.Alt4Inst(altInst);
+            } else if (altSize == 5) {
+              this.inst[i] = new Inst.Alt5Inst(altInst);
+            } else if (altSize == 6) {
+              this.inst[i] = new Inst.Alt6Inst(altInst);
+            } else if (altSize == 7) {
+              this.inst[i] = new Inst.Alt7Inst(altInst);
+            } else if (altSize == 8) {
+              this.inst[i] = new Inst.Alt8Inst(altInst);
+            } else {
+              this.inst[i] = new Inst.AltManyInst(altInst);
+            }
+          }
+        }
+      }
+    }
+      
+      
 
     for(int i = 0; i < instSize; i++) {
       Inst ii = inst[i];
       if (Inst.isAltOp(ii.op)) {
-        ((Inst.AltInst)ii).argInst = inst[ii.arg];
-      } 
-      ii.outInst = inst[ii.out];
+        if (ii instanceof Inst.Alt2Inst) {
+          Inst.Alt2Inst altInst = (Inst.Alt2Inst) ii;
+          altInst.outInst = inst[ii.out];
+          altInst.inst2 = inst[ii.arg];
+        } else if (ii instanceof  Inst.Alt3Inst) {
+          Inst.Alt3Inst altInst = (Inst.Alt3Inst) ii;
+          altInst.outInst = inst[altInst.ops[0]];
+          altInst.inst2 = inst[altInst.ops[1]];
+          altInst.inst3 = inst[altInst.ops[2]];
+        } else if (ii instanceof  Inst.Alt4Inst) {
+          Inst.Alt4Inst altInst = (Inst.Alt4Inst) ii;
+          altInst.outInst = inst[altInst.ops[0]];
+          altInst.inst2 = inst[altInst.ops[1]];
+          altInst.inst3 = inst[altInst.ops[2]];
+          altInst.inst4 = inst[altInst.ops[3]];
+        } else if (ii instanceof  Inst.Alt5Inst) {
+          Inst.Alt5Inst altInst = (Inst.Alt5Inst) ii;
+          altInst.outInst = inst[altInst.ops[0]];
+          altInst.inst2 = inst[altInst.ops[1]];
+          altInst.inst3 = inst[altInst.ops[2]];
+          altInst.inst4 = inst[altInst.ops[3]];
+          altInst.inst5 = inst[altInst.ops[4]];
+        } else if (ii instanceof  Inst.Alt6Inst) {
+          Inst.Alt6Inst altInst = (Inst.Alt6Inst) ii;
+          altInst.outInst = inst[altInst.ops[0]];
+          altInst.inst2 = inst[altInst.ops[1]];
+          altInst.inst3 = inst[altInst.ops[2]];
+          altInst.inst4 = inst[altInst.ops[3]];
+          altInst.inst5 = inst[altInst.ops[4]];
+          altInst.inst6 = inst[altInst.ops[5]];
+        } else if (ii instanceof  Inst.Alt7Inst) {
+          Inst.Alt7Inst altInst = (Inst.Alt7Inst) ii;
+          altInst.outInst = inst[altInst.ops[0]];
+          altInst.inst2 = inst[altInst.ops[1]];
+          altInst.inst3 = inst[altInst.ops[2]];
+          altInst.inst4 = inst[altInst.ops[3]];
+          altInst.inst5 = inst[altInst.ops[4]];
+          altInst.inst6 = inst[altInst.ops[5]];
+          altInst.inst7 = inst[altInst.ops[6]];
+        } else if (ii instanceof  Inst.Alt8Inst) {
+          Inst.Alt8Inst altInst = (Inst.Alt8Inst) ii;
+          altInst.outInst = inst[altInst.ops[0]];
+          altInst.inst2 = inst[altInst.ops[1]];
+          altInst.inst3 = inst[altInst.ops[2]];
+          altInst.inst4 = inst[altInst.ops[3]];
+          altInst.inst5 = inst[altInst.ops[4]];
+          altInst.inst6 = inst[altInst.ops[5]];
+          altInst.inst7 = inst[altInst.ops[6]];
+          altInst.inst8 = inst[altInst.ops[7]];
+        } else {
+          Inst.AltManyInst altInst = (Inst.AltManyInst) ii;
+          altInst.insts = buildManyAltInsts(0, altInst.ops);
+        }
+      } else {
+        ii.outInst = inst[ii.out];
+      }
       ii.pc = i;
     }
     startInst = inst[start];
+  }
+
+  private Inst[] buildManyAltInsts(int start, int[] ops) {
+    Inst[] insts = new Inst[ops.length - start];
+    for (int j = start; j < ops.length; j++) {
+      insts[j - start] = inst[ops[j]];
+    }
+    return insts;
   }
 }

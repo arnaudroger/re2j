@@ -30,7 +30,7 @@ class Inst {
     switch (op) {
       case ALT:
       case ALT_MATCH:
-        return new AltInst(op);
+        return new Alt2Inst(op);
       case CAPTURE:
         return new CaptureInst(op);
       case EMPTY_WIDTH:
@@ -175,10 +175,11 @@ class Inst {
     }
   }
 
-  public static final class AltInst extends Inst {
-    Inst argInst;
+  public static final class Alt2Inst extends Inst {
+    Inst inst2;
+    int[] ops;
 
-    AltInst(int op) {
+    Alt2Inst(int op) {
       super(op);
     }
 
@@ -190,7 +191,232 @@ class Inst {
       q.add(pc);
 
       t = outInst.add(q, pos, cap, cond, t, m);
-      t = argInst.add(q, pos, cap, cond, t, m);
+      t = inst2.add(q, pos, cap, cond, t, m);
+
+      return t;
+    }
+  }
+
+  public static final class Alt3Inst extends Inst {
+    Inst inst2;
+    Inst inst3;
+    int[] ops;
+
+    Alt3Inst(Alt2Inst orig) {
+      super(orig.op);
+      this.out = orig.out;
+      this.arg = orig.arg;
+      this.pc = orig.pc;
+      this.ops = orig.ops;
+    }
+
+    @Override
+    protected final Machine.Thread add(Machine.Queue q, int pos, int[] cap, int cond, Machine.Thread t, Machine m) {
+      if (q.contains(pc)) {
+        return t;
+      }
+      q.add(pc);
+
+      t = outInst.add(q, pos, cap, cond, t, m);
+      t = inst2.add(q, pos, cap, cond, t, m);
+      t = inst3.add(q, pos, cap, cond, t, m);
+
+      return t;
+    }
+  }
+  public static final class Alt4Inst extends Inst {
+    Inst inst2;
+    Inst inst3;
+    Inst inst4;
+    int[] ops;
+
+    Alt4Inst(Alt2Inst orig) {
+      super(orig.op);
+      this.out = orig.out;
+      this.arg = orig.arg;
+      this.pc = orig.pc;
+      this.ops = orig.ops;
+    }
+
+    @Override
+    protected final Machine.Thread add(Machine.Queue q, int pos, int[] cap, int cond, Machine.Thread t, Machine m) {
+      if (q.contains(pc)) {
+        return t;
+      }
+      q.add(pc);
+
+      t = outInst.add(q, pos, cap, cond, t, m);
+      t = inst2.add(q, pos, cap, cond, t, m);
+      t = inst3.add(q, pos, cap, cond, t, m);
+      t = inst4.add(q, pos, cap, cond, t, m);
+
+      return t;
+    }
+  }
+  public static final class Alt5Inst extends Inst {
+    Inst inst2;
+    Inst inst3;
+    Inst inst4;
+    Inst inst5;
+    int[] ops;
+
+    Alt5Inst(Alt2Inst orig) {
+      super(orig.op);
+      this.out = orig.out;
+      this.arg = orig.arg;
+      this.pc = orig.pc;
+      this.ops = orig.ops;
+    }
+
+    @Override
+    protected final Machine.Thread add(Machine.Queue q, int pos, int[] cap, int cond, Machine.Thread t, Machine m) {
+      if (q.contains(pc)) {
+        return t;
+      }
+      q.add(pc);
+
+      t = outInst.add(q, pos, cap, cond, t, m);
+      t = inst2.add(q, pos, cap, cond, t, m);
+      t = inst3.add(q, pos, cap, cond, t, m);
+      t = inst4.add(q, pos, cap, cond, t, m);
+      t = inst5.add(q, pos, cap, cond, t, m);
+
+      return t;
+    }
+  }
+
+  public static final class Alt6Inst extends Inst {
+    Inst inst2;
+    Inst inst3;
+    Inst inst4;
+    Inst inst5;
+    Inst inst6;
+    int[] ops;
+
+    Alt6Inst(Alt2Inst orig) {
+      super(orig.op);
+      this.out = orig.out;
+      this.arg = orig.arg;
+      this.pc = orig.pc;
+      this.ops = orig.ops;
+    }
+
+    @Override
+    protected final Machine.Thread add(Machine.Queue q, int pos, int[] cap, int cond, Machine.Thread t, Machine m) {
+      if (q.contains(pc)) {
+        return t;
+      }
+      q.add(pc);
+
+      t = outInst.add(q, pos, cap, cond, t, m);
+      t = inst2.add(q, pos, cap, cond, t, m);
+      t = inst3.add(q, pos, cap, cond, t, m);
+      t = inst4.add(q, pos, cap, cond, t, m);
+      t = inst5.add(q, pos, cap, cond, t, m);
+      t = inst6.add(q, pos, cap, cond, t, m);
+
+      return t;
+    }
+  }
+
+
+  public static final class Alt7Inst extends Inst {
+    Inst inst2;
+    Inst inst3;
+    Inst inst4;
+    Inst inst5;
+    Inst inst6;
+    Inst inst7;
+    int[] ops;
+
+    Alt7Inst(Alt2Inst orig) {
+      super(orig.op);
+      this.out = orig.out;
+      this.arg = orig.arg;
+      this.pc = orig.pc;
+      this.ops = orig.ops;
+    }
+
+    @Override
+    protected final Machine.Thread add(Machine.Queue q, int pos, int[] cap, int cond, Machine.Thread t, Machine m) {
+      if (q.contains(pc)) {
+        return t;
+      }
+      q.add(pc);
+
+      t = outInst.add(q, pos, cap, cond, t, m);
+      t = inst2.add(q, pos, cap, cond, t, m);
+      t = inst3.add(q, pos, cap, cond, t, m);
+      t = inst4.add(q, pos, cap, cond, t, m);
+      t = inst5.add(q, pos, cap, cond, t, m);
+      t = inst6.add(q, pos, cap, cond, t, m);
+      t = inst7.add(q, pos, cap, cond, t, m);
+
+      return t;
+    }
+  }
+
+  public static final class Alt8Inst extends Inst {
+    Inst inst2;
+    Inst inst3;
+    Inst inst4;
+    Inst inst5;
+    Inst inst6;
+    Inst inst7;
+    Inst inst8;
+    int[] ops;
+
+    Alt8Inst(Alt2Inst orig) {
+      super(orig.op);
+      this.out = orig.out;
+      this.arg = orig.arg;
+      this.pc = orig.pc;
+      this.ops = orig.ops;
+    }
+
+    @Override
+    protected final Machine.Thread add(Machine.Queue q, int pos, int[] cap, int cond, Machine.Thread t, Machine m) {
+      if (q.contains(pc)) {
+        return t;
+      }
+      q.add(pc);
+
+      t = outInst.add(q, pos, cap, cond, t, m);
+      t = inst2.add(q, pos, cap, cond, t, m);
+      t = inst3.add(q, pos, cap, cond, t, m);
+      t = inst4.add(q, pos, cap, cond, t, m);
+      t = inst5.add(q, pos, cap, cond, t, m);
+      t = inst6.add(q, pos, cap, cond, t, m);
+      t = inst7.add(q, pos, cap, cond, t, m);
+      t = inst8.add(q, pos, cap, cond, t, m);
+
+      return t;
+    }
+  }
+
+
+  public static final class AltManyInst extends Inst {
+    public Inst[] insts;
+    int[] ops;
+
+    AltManyInst(Alt2Inst orig) {
+      super(orig.op);
+      this.out = orig.out;
+      this.arg = orig.arg;
+      this.pc = orig.pc;
+      this.ops = orig.ops;
+    }
+
+    @Override
+    protected final Machine.Thread add(Machine.Queue q, int pos, int[] cap, int cond, Machine.Thread t, Machine m) {
+      if (q.contains(pc)) {
+        return t;
+      }
+      q.add(pc);
+
+      for (Inst inst : insts) {
+        t = inst.add(q, pos, cap, cond, t, m);
+      }
 
       return t;
     }

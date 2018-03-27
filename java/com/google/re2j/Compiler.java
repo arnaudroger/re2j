@@ -275,10 +275,14 @@ class Compiler {
           return nop();
         } else {
           Frag f = null;
+          int[] ops = new int[re.subs.length];
+          int i = 0;
           for (Regexp sub : re.subs) {
             Frag f1 = compile(sub);
+            ops[i++] = f1.i;
             f = (f == null) ? f1 : alt(f, f1);
           }
+          ((Inst.Alt2Inst)prog.inst[f.i]).ops = ops;
           return f;
         }
       }

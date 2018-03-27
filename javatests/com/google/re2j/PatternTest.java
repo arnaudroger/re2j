@@ -5,6 +5,7 @@ package com.google.re2j;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -187,5 +188,84 @@ public class PatternTest {
     assertSerializes(Pattern.compile("ab+c"));
     assertSerializes(Pattern.compile("^ab.*c$", Pattern.DOTALL | Pattern.MULTILINE));
     assertFalse(reserialize(Pattern.compile("abc")).matcher("def").find());
+  }
+
+
+  @Test
+  public void testAlt1() {
+    Pattern p2 = Pattern.compile("ab|cd");
+    assertTrue(p2.matches("ab"));
+    assertTrue(p2.matches("cd"));
+    assertFalse(p2.matches("ef"));
+
+    Pattern p3 = Pattern.compile("ab|cd|ef");
+    assertTrue(p3.matches("ab"));
+    assertTrue(p3.matches("cd"));
+    assertTrue(p3.matches("ef"));
+    assertFalse(p3.matches("gh"));
+
+    Pattern p4 = Pattern.compile("ab|cd|ef|gh");
+    assertTrue(p4.matches("ab"));
+    assertTrue(p4.matches("cd"));
+    assertTrue(p4.matches("ef"));
+    assertTrue(p4.matches("gh"));
+    assertFalse(p4.matches("ah"));
+
+    Pattern p5 = Pattern.compile("ab|cd|ef|gh|ij");
+    assertTrue(p5.matches("ab"));
+    assertTrue(p5.matches("cd"));
+    assertTrue(p5.matches("ef"));
+    assertTrue(p5.matches("gh"));
+    assertTrue(p5.matches("ij"));
+    assertFalse(p5.matches("ah"));
+
+    Pattern p6 = Pattern.compile("ab|cd|ef|gh|ij|kl");
+    assertTrue(p6.matches("ab"));
+    assertTrue(p6.matches("cd"));
+    assertTrue(p6.matches("ef"));
+    assertTrue(p6.matches("gh"));
+    assertTrue(p6.matches("ij"));
+    assertTrue(p6.matches("kl"));
+    assertFalse(p6.matches("ah"));
+
+    Pattern p7 = Pattern.compile("ab|cd|ef|gh|ij|kl|mn");
+    assertTrue(p7.matches("ab"));
+    assertTrue(p7.matches("cd"));
+    assertTrue(p7.matches("ef"));
+    assertTrue(p7.matches("gh"));
+    assertTrue(p7.matches("ij"));
+    assertTrue(p7.matches("kl"));
+    assertTrue(p7.matches("mn"));
+    assertFalse(p7.matches("ah"));
+
+    Pattern p8 = Pattern.compile("ab|cd|ef|gh|ij|kl|mn|op");
+    assertTrue(p8.matches("ab"));
+    assertTrue(p8.matches("cd"));
+    assertTrue(p8.matches("ef"));
+    assertTrue(p8.matches("gh"));
+    assertTrue(p8.matches("ij"));
+    assertTrue(p8.matches("kl"));
+    assertTrue(p8.matches("mn"));
+    assertTrue(p8.matches("op"));
+    assertFalse(p8.matches("ah"));
+
+    Pattern p9 = Pattern.compile("ab|cd|ef|gh|ij|kl|mn|op|qr");
+    assertTrue(p9.matches("ab"));
+    assertTrue(p9.matches("cd"));
+    assertTrue(p9.matches("ef"));
+    assertTrue(p9.matches("gh"));
+    assertTrue(p9.matches("ij"));
+    assertTrue(p9.matches("kl"));
+    assertTrue(p9.matches("mn"));
+    assertTrue(p9.matches("op"));
+    assertTrue(p9.matches("qr"));
+    assertFalse(p9.matches("ah"));
+  }
+
+
+  @Test
+  public void testAlt2() {
+    Pattern p2 = Pattern.compile("\\A(?:a+)\\z");
+    p2.matches("aa");
   }
 }
