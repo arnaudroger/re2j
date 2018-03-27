@@ -282,7 +282,7 @@ class Machine {
       }
       Inst i = t.inst;
       
-      if (i.isMatch()) {
+      if (i.op == Inst.MATCH) {
         // Don't match if we anchor at both start and end and those
         // expectations aren't met.
         if (anchor != RE2.ANCHOR_BOTH || atEnd) {
