@@ -278,7 +278,8 @@ class Machine {
   private void step(Queue runq, Queue nextq, int pos, int nextPos, int c,
             int nextCond, int anchor, boolean atEnd) {
     boolean longest = re2.longest;
-    for (int j = 0; j < runq.size; ++j) {
+    int size = runq.size;
+    for (int j = 0; j < size; ++j) {
       int[] tcap;
       
       if (!captures) {
@@ -301,11 +302,12 @@ class Machine {
             tcap[1] = pos;
             System.arraycopy(tcap, 0, matchcap, 0, tcap.length);
           }
+          matched = true;
           if (!longest) {
             // First-match mode: cut off all lower-priority threads.
-            freeQueue(runq, j + 1);
+            freeQueue(runq, j);
+            return;
           }
-          matched = true;
         }
       } else if (i.matchRune(c)){
         tcap = i.outInst.add(nextq, nextPos, tcap, nextCond, tcap, this);
