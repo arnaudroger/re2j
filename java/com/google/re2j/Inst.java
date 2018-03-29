@@ -40,7 +40,7 @@ class Inst {
       case NOP:
         return new NopInst();
       case RUNE:
-        return new RuneInst(op);
+        return new MatchInst(op);
     }
     return new Inst(op);
   }
@@ -51,6 +51,16 @@ class Inst {
   
   Inst outInst;
   int pc;
+
+  int[] runes;  // length==1 => exact match
+  // otherwise a list of [lo,hi] pairs.  hi is *inclusive*.
+  // REVIEWERS: why not half-open intervals?
+
+  int f0;
+  int f1;
+  int f2;
+  int f3;
+
 
   private Inst(int op) {
     this.op = op;
@@ -70,14 +80,55 @@ class Inst {
     throw new IllegalStateException("unhandled");
   }
 
-  boolean matchRune(int r) {
-    throw new UnsupportedOperationException();
-  }
-
   public boolean isMatch() {
     return op == MATCH;
   }
 
+  // MatchRune returns true if the instruction matches (and consumes) r.
+  // It should only be called when op == InstRune.
+  final boolean matchRune(int r) {
+    if (op == RUNE_ANY) {
+      return true;
+    }
+
+    if (op == RUNE_ANY_NOT_NL) {
+      return r != '\n';
+    }
+
+    if (op == RUNE1) {
+      return f0 == r;
+    }
+
+    if (op == RUNE1_FOLD) {
+      return f0 == r || f1 == r || f2 == r || f3 == r;
+    }
+
+    // Peek at the first few pairs.
+    // Should handle ASCII well.
+    for (int j = 0; j < runes.length && j <= 8; j += 2) {
+      if (r < runes[j]) {
+        return false;
+      }
+      if (r <= runes[j + 1]) {
+        return true;
+      }
+    }
+
+    // Otherwise binary search.
+    for (int lo = 0, hi = runes.length / 2; lo < hi; ) {
+      int m = lo + (hi - lo) / 2;
+      int c = runes[2 * m];
+      if (c <= r) {
+        if (r <= runes[2 * m + 1]) {
+          return true;
+        }
+        lo = m + 1;
+      } else {
+        hi = m;
+      }
+    }
+    return false;
+  }
 
   public static class MatchInst extends Inst {
     MatchInst() {
@@ -110,72 +161,6 @@ class Inst {
     }
   }
 
-  public static final class RuneInst extends MatchInst {
-    int[] runes;  // length==1 => exact match
-    // otherwise a list of [lo,hi] pairs.  hi is *inclusive*.
-    // REVIEWERS: why not half-open intervals?
-
-    int f0;
-    int f1;
-    int f2;
-    int f3;
-
-
-    RuneInst(int op) {
-      super(op);
-      this.runes = null;
-      this.f0 = 0;
-      this.f1 = 0;
-      this.f2 = 0;
-      this.f3 = 0;
-    }
-
-    // MatchRune returns true if the instruction matches (and consumes) r.
-    // It should only be called when op == InstRune.
-    final boolean matchRune(int r) {
-      if (op == RUNE_ANY) {
-        return true;
-      }
-
-      if (op == RUNE_ANY_NOT_NL) {
-        return r != '\n';
-      }
-      
-      if (op == RUNE1) {
-        return f0 == r;
-      }
-
-      if (op == RUNE1_FOLD) {
-        return f0 == r || f1 == r || f2 == r || f3 == r;
-      }
-
-      // Peek at the first few pairs.
-      // Should handle ASCII well.
-      for (int j = 0; j < runes.length && j <= 8; j += 2) {
-        if (r < runes[j]) {
-          return false;
-        }
-        if (r <= runes[j + 1]) {
-          return true;
-        }
-      }
-
-      // Otherwise binary search.
-      for (int lo = 0, hi = runes.length / 2; lo < hi; ) {
-        int m = lo + (hi - lo) / 2;
-        int c = runes[2 * m];
-        if (c <= r) {
-          if (r <= runes[2 * m + 1]) {
-            return true;
-          }
-          lo = m + 1;
-        } else {
-          hi = m;
-        }
-      }
-      return false;
-    }
-  }
 
   public static final class Alt2Inst extends Inst {
     Inst inst2;
@@ -511,13 +496,13 @@ class Inst {
         return "nop -> " + out;
       case RUNE:
       case RUNE1_FOLD:
-        if (((RuneInst)this).runes == null) {
+        if (runes == null) {
           return "rune <null>";  // can't happen
         }
-        return "rune " + escapeRunes(((RuneInst)this).runes ) +
+        return "rune " + escapeRunes(runes ) +
             (((arg & RE2.FOLD_CASE) != 0) ? "/i" : "") + " -> " + out;
       case RUNE1:
-        return "rune1 " + escapeRunes(((RuneInst)this).runes ) + " -> " + out;
+        return "rune1 " + escapeRunes(runes ) + " -> " + out;
       case RUNE_ANY:
         return "any -> " + out;
       case RUNE_ANY_NOT_NL:

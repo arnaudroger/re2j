@@ -159,7 +159,7 @@ class Compiler {
   // flags : parser flags
   private Frag rune(int[] runes, int flags) {
     Frag f = newInst(Inst.RUNE);
-    Inst.RuneInst i = (Inst.RuneInst) prog.getInst(f.i);
+    Inst i = prog.getInst(f.i);
     i.runes = runes;
     flags &= RE2.FOLD_CASE;  // only relevant flag is FoldCase
     if (runes.length != 1 || Unicode.simpleFold(runes[0]) == runes[0]) {
