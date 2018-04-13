@@ -280,20 +280,23 @@ class Machine {
     boolean longest = re2.longest;
     int size = runq.size;
     boolean captures = this.captures;
+    Inst[] denseThreadsInstructions = runq.denseThreadsInstructions;
+    int[][] denseThreadsCapture = runq.denseThreadsCapture;
+
     for (int j = 0; j < size; ++j) {
       int[] tcap;
       
       if (!captures) {
         tcap = null;
       } else {
-        tcap = runq.denseThreadsCapture[j];
+        tcap = denseThreadsCapture[j];
         if (longest && matched && matchcap[0] < tcap[0]) {
           free(tcap);
           continue;
         }
       }
 
-      Inst i = runq.denseThreadsInstructions[j];
+      Inst i = denseThreadsInstructions[j];
       
       if (i.op == Inst.MATCH) {
         // Don't match if we anchor at both start and end and those
