@@ -234,7 +234,7 @@ class Machine {
           width1 = r & 7;
         }
       }
-      if (!matched && (pos == 0 || anchor == RE2.UNANCHORED)) {
+      if ((anchor == RE2.UNANCHORED || pos == 0) && !matched) {
         // If we are anchoring at begin then only add threads that begin
         // at |pos| = 0.
         if (captures) {
@@ -313,6 +313,7 @@ class Machine {
       } else if (i.matchRune(c)){
         tcap = i.outInst.add(nextq, nextPos, tcap, nextCond, tcap, this, captures);
       }
+
       if (tcap != null) {
         free(tcap);
       }
