@@ -240,7 +240,7 @@ class Machine {
         if (captures) {
           matchcap[0] = pos;
         }
-        prog.startInst.add(runq,  pos, matchcap, flag, null, this);
+        prog.startInst.add(runq,  pos, matchcap, flag, null, this, captures);
       }
       flag = Utils.emptyOpContext(rune, rune1);
       step(runq, nextq, pos, pos + width, rune, flag, anchor, pos == in.endPos());
@@ -279,6 +279,7 @@ class Machine {
             int nextCond, int anchor, boolean atEnd) {
     boolean longest = re2.longest;
     int size = runq.size;
+    boolean captures = this.captures;
     for (int j = 0; j < size; ++j) {
       int[] tcap;
       
@@ -310,7 +311,7 @@ class Machine {
           }
         }
       } else if (i.matchRune(c)){
-        tcap = i.outInst.add(nextq, nextPos, tcap, nextCond, tcap, this);
+        tcap = i.outInst.add(nextq, nextPos, tcap, nextCond, tcap, this, captures);
       }
       if (tcap != null) {
         free(tcap);

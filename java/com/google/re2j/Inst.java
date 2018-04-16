@@ -76,7 +76,7 @@ class Inst {
   // from |pc| by following empty-width conditions satisfied by |cond|.  |pos|
   // gives the current position in the input.  |cond| is a bitmask of EMPTY_*
   // flags.
-  protected int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m) {
+  protected int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m, boolean captures) {
     throw new IllegalStateException("unhandled");
   }
 
@@ -140,13 +140,13 @@ class Inst {
     }
 
     @Override
-    protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m) {
+    protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m, boolean captures) {
       if (q.contains(pc)) {
         return tcap;
       }
       q.add(pc);
 
-      if (m.captures) {
+      if (captures) {
         if (tcap == null) {
           tcap = m.alloc();
         }
@@ -171,14 +171,14 @@ class Inst {
     }
 
     @Override
-    protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m) {
+    protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m, boolean captures) {
       if (q.contains(pc)) {
         return tcap;
       }
       q.add(pc);
 
-      tcap = outInst.add(q, pos, cap, cond, tcap, m);
-      tcap = inst2.add(q, pos, cap, cond, tcap, m);
+      tcap = outInst.add(q, pos, cap, cond, tcap, m, captures);
+      tcap = inst2.add(q, pos, cap, cond, tcap, m, captures);
 
       return tcap;
     }
@@ -198,15 +198,15 @@ class Inst {
     }
 
     @Override
-    protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m) {
+    protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m, boolean captures) {
       if (q.contains(pc)) {
         return tcap;
       }
       q.add(pc);
 
-      tcap = outInst.add(q, pos, cap, cond, tcap, m);
-      tcap = inst2.add(q, pos, cap, cond, tcap, m);
-      tcap = inst3.add(q, pos, cap, cond, tcap, m);
+      tcap = outInst.add(q, pos, cap, cond, tcap, m, captures);
+      tcap = inst2.add(q, pos, cap, cond, tcap, m, captures);
+      tcap = inst3.add(q, pos, cap, cond, tcap, m, captures);
 
       return tcap;
     }
@@ -226,16 +226,16 @@ class Inst {
     }
 
     @Override
-    protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m) {
+    protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m, boolean captures) {
       if (q.contains(pc)) {
         return tcap;
       }
       q.add(pc);
 
-      tcap = outInst.add(q, pos, cap, cond, tcap, m);
-      tcap = inst2.add(q, pos, cap, cond, tcap, m);
-      tcap= inst3.add(q, pos, cap, cond, tcap, m);
-      tcap= inst4.add(q, pos, cap, cond, tcap, m);
+      tcap = outInst.add(q, pos, cap, cond, tcap, m, captures);
+      tcap = inst2.add(q, pos, cap, cond, tcap, m, captures);
+      tcap= inst3.add(q, pos, cap, cond, tcap, m, captures);
+      tcap= inst4.add(q, pos, cap, cond, tcap, m, captures);
 
       return tcap;
     }
@@ -256,17 +256,17 @@ class Inst {
     }
 
     @Override
-    protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m) {
+    protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m, boolean captures) {
       if (q.contains(pc)) {
         return tcap;
       }
       q.add(pc);
 
-      tcap = outInst.add(q, pos, cap, cond, tcap, m);
-      tcap= inst2.add(q, pos, cap, cond, tcap, m);
-      tcap= inst3.add(q, pos, cap, cond, tcap, m);
-      tcap= inst4.add(q, pos, cap, cond, tcap, m);
-      tcap= inst5.add(q, pos, cap, cond, tcap, m);
+      tcap = outInst.add(q, pos, cap, cond, tcap, m, captures);
+      tcap= inst2.add(q, pos, cap, cond, tcap, m, captures);
+      tcap= inst3.add(q, pos, cap, cond, tcap, m, captures);
+      tcap= inst4.add(q, pos, cap, cond, tcap, m, captures);
+      tcap= inst5.add(q, pos, cap, cond, tcap, m, captures);
 
       return tcap;
     }
@@ -289,18 +289,18 @@ class Inst {
     }
 
     @Override
-    protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m) {
+    protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m, boolean captures) {
       if (q.contains(pc)) {
         return tcap;
       }
       q.add(pc);
 
-      tcap = outInst.add(q, pos, cap, cond, tcap, m);
-      tcap= inst2.add(q, pos, cap, cond, tcap, m);
-      tcap= inst3.add(q, pos, cap, cond, tcap, m);
-      tcap= inst4.add(q, pos, cap, cond, tcap, m);
-      tcap= inst5.add(q, pos, cap, cond, tcap, m);
-      tcap= inst6.add(q, pos, cap, cond, tcap, m);
+      tcap = outInst.add(q, pos, cap, cond, tcap, m, captures);
+      tcap= inst2.add(q, pos, cap, cond, tcap, m, captures);
+      tcap= inst3.add(q, pos, cap, cond, tcap, m, captures);
+      tcap= inst4.add(q, pos, cap, cond, tcap, m, captures);
+      tcap= inst5.add(q, pos, cap, cond, tcap, m, captures);
+      tcap= inst6.add(q, pos, cap, cond, tcap, m, captures);
 
       return tcap;
     }
@@ -325,19 +325,19 @@ class Inst {
     }
 
     @Override
-    protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m) {
+    protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m, boolean captures) {
       if (q.contains(pc)) {
         return tcap;
       }
       q.add(pc);
 
-      tcap = outInst.add(q, pos, cap, cond, tcap, m);
-      tcap= inst2.add(q, pos, cap, cond, tcap, m);
-      tcap= inst3.add(q, pos, cap, cond, tcap, m);
-      tcap= inst4.add(q, pos, cap, cond, tcap, m);
-      tcap= inst5.add(q, pos, cap, cond, tcap, m);
-      tcap= inst6.add(q, pos, cap, cond, tcap, m);
-      tcap= inst7.add(q, pos, cap, cond, tcap, m);
+      tcap = outInst.add(q, pos, cap, cond, tcap, m, captures);
+      tcap= inst2.add(q, pos, cap, cond, tcap, m, captures);
+      tcap= inst3.add(q, pos, cap, cond, tcap, m, captures);
+      tcap= inst4.add(q, pos, cap, cond, tcap, m, captures);
+      tcap= inst5.add(q, pos, cap, cond, tcap, m, captures);
+      tcap= inst6.add(q, pos, cap, cond, tcap, m, captures);
+      tcap= inst7.add(q, pos, cap, cond, tcap, m, captures);
 
       return tcap;
     }
@@ -362,20 +362,20 @@ class Inst {
     }
 
     @Override
-    protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m) {
+    protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m, boolean captures) {
       if (q.contains(pc)) {
         return tcap;
       }
       q.add(pc);
 
-      tcap = outInst.add(q, pos, cap, cond, tcap, m);
-      tcap= inst2.add(q, pos, cap, cond, tcap, m);
-      tcap= inst3.add(q, pos, cap, cond, tcap, m);
-      tcap= inst4.add(q, pos, cap, cond, tcap, m);
-      tcap= inst5.add(q, pos, cap, cond, tcap, m);
-      tcap= inst6.add(q, pos, cap, cond, tcap, m);
-      tcap= inst7.add(q, pos, cap, cond, tcap, m);
-      tcap= inst8.add(q, pos, cap, cond, tcap, m);
+      tcap = outInst.add(q, pos, cap, cond, tcap, m, captures);
+      tcap= inst2.add(q, pos, cap, cond, tcap, m, captures);
+      tcap= inst3.add(q, pos, cap, cond, tcap, m, captures);
+      tcap= inst4.add(q, pos, cap, cond, tcap, m, captures);
+      tcap= inst5.add(q, pos, cap, cond, tcap, m, captures);
+      tcap= inst6.add(q, pos, cap, cond, tcap, m, captures);
+      tcap= inst7.add(q, pos, cap, cond, tcap, m, captures);
+      tcap= inst8.add(q, pos, cap, cond, tcap, m, captures);
 
       return tcap;
     }
@@ -395,14 +395,14 @@ class Inst {
     }
 
     @Override
-    protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m) {
+    protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m, boolean captures) {
       if (q.contains(pc)) {
         return tcap;
       }
       q.add(pc);
 
       for (Inst inst : insts) {
-        tcap= inst.add(q, pos, cap, cond, tcap, m);
+        tcap= inst.add(q, pos, cap, cond, tcap, m, captures);
       }
 
       return tcap;
@@ -417,14 +417,14 @@ class Inst {
     }
 
     @Override
-    protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m) {
+    protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m, boolean captures) {
       if (q.contains(pc)) {
         return tcap;
       }
       q.add(pc);
 
       if ((arg & ~cond) == 0) {
-        tcap = outInst.add(q, pos, cap, cond, tcap, m);
+        tcap = outInst.add(q, pos, cap, cond, tcap, m, captures);
       }
 
       return tcap;
@@ -438,13 +438,13 @@ class Inst {
     }
 
     @Override
-    protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m) {
+    protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m, boolean captures) {
       if (q.contains(pc)) {
         return tcap;
       }
       q.add(pc);
 
-      tcap = outInst.add(q, pos, cap, cond, tcap, m);
+      tcap = outInst.add(q, pos, cap, cond, tcap, m, captures);
 
       return tcap;
     }
@@ -457,19 +457,19 @@ class Inst {
     }
 
     @Override
-    protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m) {
+    protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m, boolean captures) {
       if (q.contains(pc)) {
         return tcap;
       }
       q.add(pc);
 
-      if (m.captures && arg < cap.length) {
+      if (captures && arg < cap.length) {
         int opos = cap[arg];
         cap[arg] = pos;
-        tcap = outInst.add(q, pos, cap, cond, null, m);
+        tcap = outInst.add(q, pos, cap, cond, null, m, captures);
         cap[arg] = opos;
       } else {
-        tcap = outInst.add(q, pos, cap, cond, tcap, m);
+        tcap = outInst.add(q, pos, cap, cond, tcap, m, captures);
       }
 
       return tcap;
