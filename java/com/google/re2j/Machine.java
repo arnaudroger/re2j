@@ -188,6 +188,8 @@ class Machine {
       return false;
     }
     matched = false;
+    Inst startInst = prog.startInst;
+
     Arrays.fill(matchcap, -1);
     Queue runq = q0, nextq = q1;
     int r = in.step(pos);
@@ -240,7 +242,7 @@ class Machine {
         if (captures) {
           matchcap[0] = pos;
         }
-        prog.startInst.add(runq,  pos, matchcap, flag, null, this, captures);
+        startInst.add(runq,  pos, matchcap, flag, null, this, captures);
       }
       flag = Utils.emptyOpContext(rune, rune1);
       step(runq, nextq, pos, pos + width, rune, flag, anchor, pos == in.endPos());
