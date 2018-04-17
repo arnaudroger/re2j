@@ -45,6 +45,25 @@ class Machine {
       }
     }
 
+    boolean containsOrAdd(int pc) {
+      if (pc < 64) {
+        long mask = 1L << pc;
+        if ((pcsl & mask) == 0) {
+          pcsl |= mask;
+          empty = false;
+          return false;
+        }
+        return true;  
+      } else {
+        if (!pcs[pc - 64]) {
+           pcs[pc - 64] = true;
+           empty = false;
+           return false;
+        }
+        return true;
+      }
+    }
+
     boolean isEmpty() { return empty; }
 
     void add(int pc) {
@@ -69,7 +88,7 @@ class Machine {
       if (empty) return;
       size = 0;
       empty = true;
-      pcsl &= 0L;
+      pcsl = 0L;
       if (pcs != null) {
         Arrays.fill(pcs, false);
       }

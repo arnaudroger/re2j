@@ -141,10 +141,9 @@ class Inst {
 
     @Override
     protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m, boolean captures) {
-      if (q.contains(pc)) {
+      if (q.containsOrAdd(pc)) {
         return tcap;
       }
-      q.add(pc);
 
       if (captures) {
         if (tcap == null) {
@@ -172,10 +171,9 @@ class Inst {
 
     @Override
     protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m, boolean captures) {
-      if (q.contains(pc)) {
+      if (q.containsOrAdd(pc)) {
         return tcap;
       }
-      q.add(pc);
 
       tcap = outInst.add(q, pos, cap, cond, tcap, m, captures);
       tcap = inst2.add(q, pos, cap, cond, tcap, m, captures);
@@ -199,10 +197,9 @@ class Inst {
 
     @Override
     protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m, boolean captures) {
-      if (q.contains(pc)) {
+      if (q.containsOrAdd(pc)) {
         return tcap;
       }
-      q.add(pc);
 
       tcap = outInst.add(q, pos, cap, cond, tcap, m, captures);
       tcap = inst2.add(q, pos, cap, cond, tcap, m, captures);
@@ -227,10 +224,9 @@ class Inst {
 
     @Override
     protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m, boolean captures) {
-      if (q.contains(pc)) {
+      if (q.containsOrAdd(pc)) {
         return tcap;
       }
-      q.add(pc);
 
       tcap = outInst.add(q, pos, cap, cond, tcap, m, captures);
       tcap = inst2.add(q, pos, cap, cond, tcap, m, captures);
@@ -257,10 +253,9 @@ class Inst {
 
     @Override
     protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m, boolean captures) {
-      if (q.contains(pc)) {
+      if (q.containsOrAdd(pc)) {
         return tcap;
       }
-      q.add(pc);
 
       tcap = outInst.add(q, pos, cap, cond, tcap, m, captures);
       tcap= inst2.add(q, pos, cap, cond, tcap, m, captures);
@@ -290,10 +285,9 @@ class Inst {
 
     @Override
     protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m, boolean captures) {
-      if (q.contains(pc)) {
+      if (q.containsOrAdd(pc)) {
         return tcap;
       }
-      q.add(pc);
 
       tcap = outInst.add(q, pos, cap, cond, tcap, m, captures);
       tcap= inst2.add(q, pos, cap, cond, tcap, m, captures);
@@ -326,10 +320,9 @@ class Inst {
 
     @Override
     protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m, boolean captures) {
-      if (q.contains(pc)) {
+      if (q.containsOrAdd(pc)) {
         return tcap;
       }
-      q.add(pc);
 
       tcap = outInst.add(q, pos, cap, cond, tcap, m, captures);
       tcap= inst2.add(q, pos, cap, cond, tcap, m, captures);
@@ -363,10 +356,9 @@ class Inst {
 
     @Override
     protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m, boolean captures) {
-      if (q.contains(pc)) {
+      if (q.containsOrAdd(pc)) {
         return tcap;
       }
-      q.add(pc);
 
       tcap = outInst.add(q, pos, cap, cond, tcap, m, captures);
       tcap= inst2.add(q, pos, cap, cond, tcap, m, captures);
@@ -396,10 +388,9 @@ class Inst {
 
     @Override
     protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m, boolean captures) {
-      if (q.contains(pc)) {
+      if (q.containsOrAdd(pc)) {
         return tcap;
       }
-      q.add(pc);
 
       for (Inst inst : insts) {
         tcap= inst.add(q, pos, cap, cond, tcap, m, captures);
@@ -447,11 +438,9 @@ class Inst {
     @Override
     protected final int[] add(Machine.Queue q, int pos, int[] cap, int cond, int[] tcap, Machine m, boolean captures) {
       if (captures && arg < cap.length) {
-        if (q.contains(pc)) {
-          return tcap;
-        }
-        q.add(pc);
-        
+        if (q.containsOrAdd(pc)) {
+            return tcap;
+        } 
         int opos = cap[arg];
         cap[arg] = pos;
         tcap = outInst.add(q, pos, cap, cond, null, m, captures);
