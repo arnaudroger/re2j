@@ -17,7 +17,7 @@ class Machine {
 
 
 
-  static class Queue {
+  static final class Queue {
 
     final boolean[] pcs;
     long pcsl;
@@ -37,42 +37,19 @@ class Machine {
       clear();
     }
 
-    boolean contains(int pc) {
-      if (pc < 64) {
-        return (pcsl & 1L << pc) != 0;
-      } else {
-        return pcs[pc - 64];
-      }
-    }
-
     boolean containsOrAdd(int pc) {
-      if (pc < 64) {
+      if (pcs == null || pc < 64) {
         long mask = 1L << pc;
-        if ((pcsl & mask) == 0) {
-          pcsl |= mask;
-          empty = false;
-          return false;
-        }
-        return true;  
+        boolean b = (pcsl & mask) != 0;
+        pcsl |= mask;
+        empty = false;
+        return b;
       } else {
-        if (!pcs[pc - 64]) {
-           pcs[pc - 64] = true;
-           empty = false;
-           return false;
-        }
-        return true;
+	boolean b = pcs[pc - 64];
+	pcs[pc - 64] = true;
+        empty = false;
+        return b;
       }
-    }
-
-    boolean isEmpty() { return empty; }
-
-    void add(int pc) {
-      if (pc < 64) {
-        pcsl |= 1L << pc;
-      } else {
-        pcs[pc - 64] = true;
-      }
-      empty = false;
     }
 
     final void addThread(Inst inst, int[] capture) {
@@ -229,7 +206,7 @@ class Machine {
     }
     for (;;) {
 
-      if (runq.isEmpty()) {
+      if (runq.empty) {
         if ((startCond & Utils.EMPTY_BEGIN_TEXT) != 0 && pos != 0) {
           // Anchored match, past beginning of text.
           break;
